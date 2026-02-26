@@ -1,0 +1,309 @@
+{
+  "name": "Buildings",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -288,
+        -64
+      ],
+      "id": "1ddad2b4-aaa1-4bdc-a982-ca3dcc13bd38",
+      "name": "Telegram Trigger",
+      "webhookId": "3968c527-468d-4a91-9999-5a820672ba85",
+      "credentials": {
+        "telegramApi": {
+          "id": "gqbhfCTKaITdp4O2",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "=Role: You are an expert Real Estate Lead Qualifier. Your mission is to conduct a structured interview, calculate a qualification score based on specific rules, and save data only for high-quality leads.\n\nScoring Matrix (Internal Only): Calculate the score based on the following values:\n\nFirst Purchase: (No = 20 pts | Yes = 10 pts)\n\nBuy or Rent: (Buy = 30 pts | Rent = 15 pts)\n\nProperty Status: (New = 10 pts | Resale = 10 pts)\n\nTimeline: (Immediate = 30 pts | 1-3 months = 15 pts | 3+ months = 5 pts)\n\nBudget: (Within Market Range = 10 pts | Below Market Range = 0 pts)\n\nMandatory Tool Calling Rule:\n\nThreshold: 50 Points.\n\nAction: If the total score is 50 or above, you MUST call the append_row_in_sheet tool.\n\nData Format: You MUST format the input as a dictionary containing all collected info.\n\nExample: {\"Name\": \"Ali\", \"Phone\": \"012...\", \"Property_Type\": \"Apartment\", \"Buy_or_Rent\": \"Buy\", \"Property_Status\": \"New\", \"First_Purchase\": \"Yes\", \"Timeline\": \"Immediate\", \"Budget\": \"1.2M\", \"Score\": 85}\n\nConstraint: If the score is below 50, do NOT call the tool. Simply end the conversation politely.\n\nInterview Rules:\n\nSequential Questions: Ask only ONE question at a time. Do not move to the next until the user answers.\n\nThe Script:\n\nStart by asking for Name and Phone Number.\n\nAsk: \"Is this your first time purchasing a property with us?\"\n\nAsk: \"Are you looking to Buy or Rent?\"\n\nAsk: \"Do you prefer a New property or a Resale unit?\"\n\nAsk: \"What is your expected Timeline (e.g., Immediate, 1-3 months, or longer)?\"\n\nAsk: \"What is your estimated Budget?\"\n\nPost-Interview: After the last answer, calculate the total score silently.\n\nResponse Style: Friendly and professional. Do not show the score or the logic to the user. If qualified, call the tool first, then send a final thank you message."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -64,
+        -64
+      ],
+      "id": "ed2e24e7-ec24-47dc-8ba8-73d128f43767",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-chat-v3.1",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        208
+      ],
+      "id": "34fe5480-7ed7-4a44-8385-a8933faa3bb5",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "1SevA8SSm6ROrJIR",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        -64
+      ],
+      "id": "07081888-b975-4a7c-9ab6-b7bdab9c7011",
+      "name": "Send a text message",
+      "webhookId": "1d7bcdba-9413-48a2-8bc1-27bef319ac7b",
+      "credentials": {
+        "telegramApi": {
+          "id": "gqbhfCTKaITdp4O2",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}",
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        16,
+        192
+      ],
+      "id": "219250f7-3eab-4fb8-b77a-ffd91edab26a",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "\"Add a new lead to the sheet. This tool REQUIRES a JSON object with these exact keys: Name, Phone, Property_Type, Buy_or_Rent, Property_Status, First_Purchase, Timeline, Budget, and Score. You must map the user answers to these keys. Do not send empty values.\"",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1AiuFqlMAwhApK6N6VQKDf6mMViNr_PnGeb_hvGUTGGg",
+          "mode": "list",
+          "cachedResultName": "Buildings",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1AiuFqlMAwhApK6N6VQKDf6mMViNr_PnGeb_hvGUTGGg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1AiuFqlMAwhApK6N6VQKDf6mMViNr_PnGeb_hvGUTGGg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "Score": "="
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Property_Type",
+              "displayName": "Property_Type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Buy_or_Rent",
+              "displayName": "Buy_or_Rent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Property_Status",
+              "displayName": "Property_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First_Purchase",
+              "displayName": "First_Purchase",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Timeline",
+              "displayName": "Timeline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        144
+      ],
+      "id": "99f46d31-f378-497a-93fe-7d81e450886c",
+      "name": "append_row_in_sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "a5JeDXpT8kSl4Mkq",
+          "name": "Google Sheets account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "append_row_in_sheet": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "74fdc38f-f3bb-4105-9db3-c8b4739b9003",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51d68a43c0e7de098d2588489dee30bfbf9d1d00b625cf7115d934a62a4d9706"
+  },
+  "id": "pExEvKWZCtt6QH8dtQtPx",
+  "tags": []
+}
