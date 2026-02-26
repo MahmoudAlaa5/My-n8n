@@ -1,0 +1,301 @@
+{
+  "name": "my Wok flow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -576,
+        -64
+      ],
+      "id": "9b5d6729-bd3c-469a-a29e-892784bf9870",
+      "name": "Telegram Trigger",
+      "webhookId": "5d7e0de9-fe76-44a3-ad8b-660559515e25",
+      "credentials": {
+        "telegramApi": {
+          "id": "gqbhfCTKaITdp4O2",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "=SystemMessagePromptTemplate",
+              "message": "=### ROLE\nYou are a professional waiter for \"The Grill Master\" restaurant. Your job is to take orders and collect customer information (Name and Phone).\n\n### MENU\n- Burger: $10\n- Beef: $15\n- Cheesy Fries: $7\n- Chicken Sandwich: $9\n- Soda: $2\n\n### OPERATIONAL RULES\n1. INFO GATHERING: If the customer's name or phone is not provided, set their respective fields to \"Empty\" in the JSON and politely ask for them in your reply.\n2. CALCULATIONS: Always update the order_summary array when a user picks food. Calculate total_price accurately.\n3. STATUS LOGIC: \n   - Use \"browsing\" if they are just looking.\n   - Use \"ordering\" if they started picking food but haven't given Name/Phone.\n   - Use \"confirmed\" ONLY when you have: Name + Phone + at least one food item.\n4. LANGUAGE: Always reply to the user in the language they use (Arabic or English), but keep the JSON field names as defined.\n\n### CRITICAL OUTPUT INSTRUCTION\n- You must respond ONLY with a valid JSON object.\n- Do not include markdown code blocks like ```json.\n- Do not add any text before or after the JSON.\n- Ensure all required fields are present in every response."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -352,
+        -64
+      ],
+      "id": "6fa42bfb-f421-44fe-bab0-eb90ac6784c5",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "tngtech/deepseek-r1t2-chimera:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        144
+      ],
+      "id": "6db127c0-d4f4-44a8-83af-cc655fbdcbf1",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "1SevA8SSm6ROrJIR",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output.customer_reply }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        64,
+        -64
+      ],
+      "id": "33cc94af-568f-4f19-a0b6-2818d38382e5",
+      "name": "Send a text message",
+      "webhookId": "39021f4d-a9cd-4fbc-82f6-05e7a184aceb",
+      "credentials": {
+        "telegramApi": {
+          "id": "gqbhfCTKaITdp4O2",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={\n  \"type\": \"object\",\n  \"properties\": {\n    \"customer_reply\": {\n      \"type\": \"string\",\n      \"description\": \"Your friendly text response to the user.\"\n    },\n    \"customer_name\": {\n      \"type\": \"string\",\n      \"description\": \"Full name of the user. Set to 'Empty' if not known.\"\n    },\n    \"customer_phone\": {\n      \"type\": \"string\",\n      \"description\": \"Phone number of the user. Set to 'Empty' if not known.\"\n    },\n    \"order_summary\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"item_name\": { \"type\": \"string\" },\n          \"quantity\": { \"type\": \"integer\" },\n          \"price\": { \"type\": \"number\" }\n        },\n        \"required\": [\"item_name\", \"quantity\", \"price\"]\n      }\n    },\n    \"total_price\": {\n      \"type\": \"number\",\n      \"description\": \"Sum of all items in order_summary.\"\n    },\n    \"order_status\": {\n      \"type\": \"string\",\n      \"enum\": [\"browsing\", \"ordering\", \"confirmed\"],\n      \"description\": \"Current phase of the chat.\"\n    }\n  },\n  \"required\": [\"customer_reply\", \"customer_name\", \"customer_phone\", \"order_status\", \"total_price\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        144
+      ],
+      "id": "3d84188f-8c5d-4f3f-9be9-aa58c7471205",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1q0EV3yxRpWDMD18zj6Pn_FruRzKFhne3qOcHOnKO6UQ",
+          "mode": "list",
+          "cachedResultName": "Orders",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1q0EV3yxRpWDMD18zj6Pn_FruRzKFhne3qOcHOnKO6UQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1q0EV3yxRpWDMD18zj6Pn_FruRzKFhne3qOcHOnKO6UQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Basic LLM Chain').item.json.output.customer_name }}",
+            "Phone Number": "={{ $('Basic LLM Chain').item.json.output.customer_phone }}",
+            "Total Price": "={{ $('Basic LLM Chain').item.json.output.total_price }}",
+            "Item": "={{ $json.item_name }}",
+            "Quantity": "={{ $json.quantity }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Item",
+              "displayName": "Item",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Quantity",
+              "displayName": "Quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Total Price",
+              "displayName": "Total Price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        560,
+        16
+      ],
+      "id": "66b39cbd-f481-498f-874e-5bc26b4f43c1",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RsElKBqVeILoqiJJ",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.order_summary",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        96,
+        112
+      ],
+      "id": "93c6e75e-76f0-464d-9073-779dfb9f745c",
+      "name": "Split Out"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "4090a239-a904-4ee8-b28f-7dba06b3714b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51d68a43c0e7de098d2588489dee30bfbf9d1d00b625cf7115d934a62a4d9706"
+  },
+  "id": "vnb5LjMPuWLZYx8NFwd3F",
+  "tags": []
+}
