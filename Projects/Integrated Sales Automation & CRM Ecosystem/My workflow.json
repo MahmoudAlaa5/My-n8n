@@ -1,0 +1,600 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -720,
+        -160
+      ],
+      "id": "b6fff9f5-2167-4c81-8bde-da708f9fe787",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "rhxYLWTw6UUBjsQY",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8fac8bb9-df7d-4034-9022-87be7b31170d",
+              "leftValue": "={{ $json.Subject }}",
+              "rightValue": "Re: Sales Automation",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -464,
+        -160
+      ],
+      "id": "58289549-5175-4567-9b0b-f016c79e954b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// هذا الكود يستخلص الإيميل فقط من حقل From\nfor (const item of $input.all()) {\n  const rawEmail = item.json.From || \"\"; // افترضنا أن الحقل اسمه From\n  \n  // استخدام Regex لاستخراج الإيميل بين < > أو الإيميل وحده إذا لم يوجد أقواس\n  const emailMatch = rawEmail.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\.[a-zA-Z0-9._-]+)/);\n  \n  // إذا وجد إيميل سيضعه، وإذا لم يجد سيترك الحقل فارغاً\n  item.json.clean_email = emailMatch ? emailMatch[0] : rawEmail;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        -176
+      ],
+      "id": "9195e85a-af34-4f80-b0f9-25dfa6ee4ecf",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "30a4b410-dc45-8016-94a9-f29c6267c9c1",
+          "mode": "list",
+          "cachedResultName": "CRM (n8n)",
+          "cachedResultUrl": "https://www.notion.so/30a4b410dc45801694a9f29c6267c9c1"
+        },
+        "limit": 2,
+        "filterType": "json",
+        "filterJson": "={   \"property\": \"Email\",   \"email\": {     \"equals\": \"{{ $json.clean_email }}\"   } }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        32,
+        -176
+      ],
+      "id": "31a22e99-f77b-4470-aac7-260dc6c1e584",
+      "name": "Get many database pages",
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "556b6d5f-505c-48d3-9780-ecc27da0e7c0",
+              "name": "User_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "40b967f6-3516-4543-9d9f-c1bd0d115d03",
+              "name": "Reply",
+              "value": "=\n {{ $('Gmail Trigger').item.json.snippet }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        -176
+      ],
+      "id": "e8cb6180-3a82-4413-91fc-984026da718d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Gmail Trigger').item.json.snippet }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Role: Binary Classifier.\nTask: Classify lead intent.\n\n[STRICT OUTPUT RULE]\nYour response must be ONLY one of these two formats:\n1. Status: Interested\n2. Status: Not Interested\n\n[CRITERIA]\n- \"Status: Interested\": Use if the message is positive, a question, \"who are you?\", or neutral.\n- \"Status: Not Interested\": Use ONLY if the message is a clear rejection or \"no/stop\".\n\n[LOGIC]\n- No extra text.\n- No punctuation.\n- If ambiguous, output: Status: Interested"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        784,
+        -176
+      ],
+      "id": "04d93c53-0949-4066-90cf-4c13dd03d00e",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "upstage/solar-pro-3:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        720,
+        48
+      ],
+      "id": "5dfa9684-680c-4d10-9ea6-c850cf910f50",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "1SevA8SSm6ROrJIR",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields').all()[0].json.User_id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "Drop"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1856,
+        -48
+      ],
+      "id": "fc391ba9-53f7-4276-abfa-decbe99d57a4",
+      "name": "Update a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.state }}",
+                    "rightValue": "Interested",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "dee5b598-63c9-4e83-8ca1-f9c333018cbc"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Interested"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "da77570d-7991-4b9f-957f-f08d19bcfbad",
+                    "leftValue": "={{ $json.state }}",
+                    "rightValue": "Not Interested",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Not Interested"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1408,
+        -176
+      ],
+      "id": "d4a64272-1d2d-4cb5-b6bd-137eda2bdb07",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allInputItems = $input.all();\nconst firstItem = allInputItems[0];\n\nconst rawText = firstItem.json.text || firstItem.json.output || \"\";\n\nlet cleanValue = \"\";\n\nif (rawText.includes(':')) {\n    cleanValue = rawText.split(':')[1].trim();\n} else {\n    cleanValue = rawText.trim();\n}\n\nreturn [\n  {\n    json: {\n      ...firstItem.json,   // نحافظ على البيانات الأصلية\n      state: cleanValue    // نضيف المتغير الجديد\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        -176
+      ],
+      "id": "362a8a23-2e3a-4795-b9aa-511bb23139ad",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields').all()[0].json.User_id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "Meeting Link Sent"
+            },
+            {
+              "key": "Last Communication|date",
+              "date": "={{ $now }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1872,
+        -304
+      ],
+      "id": "eace661b-cbf0-4887-9a8c-d083716fe898",
+      "name": "Update a database page1",
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.property_email }}",
+        "subject": "={{ $('Gmail Trigger').item.json.Subject }}",
+        "message": "=<!DOCTYPE html>\n<html lang=\"ar\" dir=\"rtl\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <style>\n        body {\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            background-color: #f4f7f6;\n            margin: 0;\n            padding: 0;\n        }\n        .container {\n            max-width: 600px;\n            margin: 20px auto;\n            background-color: #ffffff;\n            border-radius: 8px;\n            overflow: hidden;\n            box-shadow: 0 4px 10px rgba(0,0,0,0.1);\n        }\n        .header {\n            background-color: #2c3e50;\n            color: #ffffff;\n            padding: 30px;\n            text-align: center;\n        }\n        .content {\n            padding: 30px;\n            color: #333333;\n            line-height: 1.6;\n            text-align: right;\n        }\n        .button-container {\n            text-align: center;\n            padding: 30px 0;\n        }\n        .button {\n            background-color: #27ae60;\n            color: #ffffff !important;\n            padding: 15px 30px;\n            text-decoration: none;\n            border-radius: 5px;\n            font-weight: bold;\n            display: inline-block;\n            font-size: 16px;\n        }\n        .footer {\n            background-color: #f9f9f9;\n            padding: 20px;\n            text-align: center;\n            font-size: 12px;\n            color: #777777;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <h1>شكراً لتواصلك معنا</h1>\n        </div>\n        <div class=\"content\">\n            <p>أهلاً بك،</p>\n            <p>أود أن أشكرك جزيل الشكر على ردك واهتمامك. نحن نقدر وقتك ونتطلع لمناقشة كيف يمكننا مساعدتك بشكل أفضل.</p>\n            <p>لضمان تقديم أفضل خدمة ممكنة، أقترح أن نعقد اجتماعاً قصيراً لمناقشة التفاصيل.</p>\n            <p>يمكنك اختيار الموعد المناسب لك مباشرة عبر الرابط أدناه:</p>\n        </div>\n        <div class=\"button-container\">\n            <a href=\"https://calendar.app.google/RmHhTkLPMiSJs2Ja8\" class=\"button\">حجز موعد الاجتماع</a>\n        </div>\n        <div class=\"content\" style=\"padding-top: 0;\">\n            <p>أتطلع للقائك قريباً.</p>\n            <p>مع أطيب التحيات،</p>\n        </div>\n        <div class=\"footer\">\n            هذا البريد مرسل خصيصاً لك. شكراً لثقتك بنا.\n        </div>\n    </div>\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2080,
+        -288
+      ],
+      "id": "56825ea7-966d-4dc0-984f-3a420795104f",
+      "name": "Send a message",
+      "webhookId": "3986fb0d-3009-4b27-af41-f5f4f21ae3b1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "rhxYLWTw6UUBjsQY",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "30c4b410-dc45-80b4-8ad5-ee9b06d96ed4",
+          "mode": "list",
+          "cachedResultName": "Team Tasks",
+          "cachedResultUrl": "https://www.notion.so/30c4b410dc4580b48ad5ee9b06d96ed4"
+        },
+        "title": "Ahmed Essam",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Email|email",
+              "emailValue": "={{ $('Code in JavaScript').item.json.clean_email }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "Meeting Link Sent"
+            },
+            {
+              "key": "Reply|rich_text",
+              "textContent": "={{ $('Code in JavaScript2').item.json.Reply }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        2288,
+        -288
+      ],
+      "id": "2a311fc3-57e2-4e7c-8c8b-fdd2bf9a73e5",
+      "name": "Create a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  // 1. الحصول على نص الـ Reply\n  let rawReply = item.json.Reply || \"\";\n\n  // 2. تنظيف النص من الرموز الابتدائية مثل \\n\n  let cleanedReply = rawReply.trim();\n\n  // 3. استخدام Regex لقطع النص عند بداية جملة \"في الأربعاء\" أو أي صيغة مشابهة للردود المقتبسة\n  // هذا التعبير يبحث عن \"في\" المتبوعة بيوم أسبوع أو تاريخ، ويأخذ ما قبلها فقط\n  const splitPattern = /في\\s+(الأحد|الأثنين|الثلاثاء|الأربعاء|الخميس|الجمعة|السبت|[\\d]{1,2})/;\n  \n  let finalReply = cleanedReply.split(splitPattern)[0].trim();\n\n  // 4. تحديث البيانات في المخرجات\n  item.json.Reply = finalReply;\n  \n  // ملاحظة: الـ User_id سيبقى كما هو تلقائياً لأننا لم نقم بتعديله\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -176
+      ],
+      "id": "c543aa6c-ac1e-4f8b-9361-e784b5a0a67b",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "chatId": "6997710403",
+        "text": "You have a new task, please check Notion",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2496,
+        -288
+      ],
+      "id": "0507664f-c874-4f79-9aaf-245094450faa",
+      "name": "Send a text message",
+      "webhookId": "7db1fd89-3f27-4e5a-82d1-859c1dff4e5e",
+      "credentials": {
+        "telegramApi": {
+          "id": "S590TNpdJqWJN3YB",
+          "name": "Telegram account 4"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Get many database pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many database pages": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Update a database page1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a database page1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a database page": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "87cee058-d03c-4ccf-9a9f-b31955e00957",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51d68a43c0e7de098d2588489dee30bfbf9d1d00b625cf7115d934a62a4d9706"
+  },
+  "id": "r2JFxjgfb0RudW6lZVklr",
+  "tags": []
+}

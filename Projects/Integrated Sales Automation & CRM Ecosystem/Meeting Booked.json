@@ -1,0 +1,180 @@
+{
+  "name": "Meeting Booked",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "calendarId": {
+          "__rl": true,
+          "value": "75de7de0123483ae2dad304cdc3a82c9e35ab3f7f0c3eef4b578752c383a1e42@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "n8n Leads"
+        },
+        "triggerOn": "eventCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8d6b81c3-ac2e-45bf-ae5f-73766699f250",
+      "name": "Google Calendar Trigger",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "rzjeiIU7aJBDztRs",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "30a4b410-dc45-8016-94a9-f29c6267c9c1",
+          "mode": "list",
+          "cachedResultName": "CRM (n8n)",
+          "cachedResultUrl": "https://www.notion.so/30a4b410dc45801694a9f29c6267c9c1"
+        },
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Email|email",
+              "condition": "equals",
+              "emailValue": "={{ $json.creator.email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "aacff57e-0107-4126-9fbe-df1e6b5d0a4d",
+      "name": "Get many database pages",
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "Meeting Booked"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "2dc2c143-6734-4f09-9dda-3dc1318513b4",
+      "name": "Update a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "6997710403",
+        "text": "=You Have a new booked meeting with {{ $json.name }} \nEmail: {{ $json.property_email }} \nAfter meeting, please fill this form: https://unblemishable-willia-solitarily.ngrok-free.dev/form/d5a2fd03-5f13-4357-9f24-57b739e39969",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "962c0249-45a0-4f39-be3b-df89d1e74108",
+      "name": "Send a text message",
+      "webhookId": "85bfaa67-6625-493a-91ad-20ce42508c92",
+      "credentials": {
+        "telegramApi": {
+          "id": "S590TNpdJqWJN3YB",
+          "name": "Telegram account 4"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Calendar Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many database pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many database pages": {
+      "main": [
+        [
+          {
+            "node": "Update a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a database page": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "4411fef6-9d17-473f-860d-cb4e1b88361d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51d68a43c0e7de098d2588489dee30bfbf9d1d00b625cf7115d934a62a4d9706"
+  },
+  "id": "VQ9XYGFdl2ajzslpwtpS5",
+  "tags": []
+}

@@ -1,0 +1,421 @@
+{
+  "name": "Follow-up Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "event": "pagedUpdatedInDatabase",
+        "databaseId": {
+          "__rl": true,
+          "value": "30a4b410-dc45-8016-94a9-f29c6267c9c1",
+          "mode": "list",
+          "cachedResultName": "CRM (n8n)",
+          "cachedResultUrl": "https://www.notion.so/30a4b410dc45801694a9f29c6267c9c1"
+        }
+      },
+      "type": "n8n-nodes-base.notionTrigger",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        -32
+      ],
+      "id": "c825f26f-f2a7-4edb-b9dc-a10e93e08183",
+      "name": "Notion Trigger",
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "f4a30936-5d3d-47e0-906b-dab30a3c0abf",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "94d45814-e3a1-4b58-8fa5-71cf04c4975b",
+              "leftValue": "={{ $json['Next Communication'] }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        480,
+        0
+      ],
+      "id": "9ead6bdc-26b0-4f78-a058-4e365d5109f8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.Status }}",
+                    "rightValue": "Email Sent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ac221b89-ba05-48d7-aebf-808478b168a1"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Email Sent"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f63a8218-f324-4575-afc3-149bcd77f438",
+                    "leftValue": "={{ $json.Status }}",
+                    "rightValue": "Email Follow-up Sent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Follow-up Sent"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "28a3d5ec-3b0b-4c1b-8fe2-937066853e2b",
+                    "leftValue": "={{ $json.Status }}",
+                    "rightValue": "Meeting Link Sent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Meeting Link Sent"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        656,
+        -112
+      ],
+      "id": "7d97a643-7d1a-4559-bbd7-d18cb2d34409",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $('Notion Trigger').item.json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "Drop"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        752,
+        96
+      ],
+      "id": "9b48ad99-a998-43c1-acc0-f904a6151240",
+      "name": "Update a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Notion Trigger').item.json.Email }}",
+        "subject": "Re: Sales Automation",
+        "message": "=<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <style>\n        body {\n            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;\n            line-height: 1.6;\n            color: #2d3436;\n            margin: 0;\n            padding: 0;\n        }\n        .wrapper {\n            background-color: #f9f9f9;\n            padding: 20px;\n        }\n        .container {\n            max-width: 550px;\n            margin: 0 auto;\n            background: #ffffff;\n            padding: 30px;\n            border-radius: 12px;\n            border: 1px solid #edf2f7;\n            box-shadow: 0 4px 6px rgba(0,0,0,0.02);\n        }\n        .greeting {\n            font-size: 16px;\n            font-weight: 600;\n        }\n        .content {\n            margin: 20px 0;\n        }\n        .footer {\n            margin-top: 30px;\n            padding-top: 20px;\n            border-top: 1px solid #eee;\n            font-size: 14px;\n            color: #636e72;\n        }\n        .highlight {\n            color: #0984e3;\n            font-weight: 500;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"wrapper\">\n        <div class=\"container\">\n            <p class=\"greeting\">Hi there,</p>\n            \n            <div class=\"content\">\n                <p>I hope you're having a great week!</p>\n                \n                <p>I’m just sending a quick note to <span class=\"highlight\">bring my previous email back to the top of your inbox</span>. I know things can get busy, and I wanted to make sure you had a chance to see it.</p>\n                \n                <p>I'm really looking forward to hearing your thoughts on the proposal/project we discussed.</p>\n                \n                <p>If you have any questions or if now isn't the best time, just let me know!</p>\n            </div>\n            \n            <div class=\"footer\">\n                Best regards,<br>\n                <strong>[Mahmoud Alaa's Automation]</strong>\n            </div>\n        </div>\n    </div>\n</body>\n</html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        -96
+      ],
+      "id": "59b9ec2a-8847-4dfd-b671-7bb1700a5264",
+      "name": "Send a message",
+      "webhookId": "af5e1fff-c93a-470b-b535-4c50949b9a64",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "rhxYLWTw6UUBjsQY",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $('Notion Trigger').item.json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Last Communication|date",
+              "date": "={{ $now }}"
+            },
+            {
+              "key": "Status|select",
+              "selectValue": "Email Follow-up Sent"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1088,
+        -96
+      ],
+      "id": "da976c36-09d0-4751-90b7-c0565ba547e7",
+      "name": "Update a database page1",
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "6997710403",
+        "text": "=Please follow Up with {{ $json.Name }} whose email is {{ $json.Email }} and he was intersted but didn't book a meeting.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        160
+      ],
+      "id": "1a561315-8d8b-469b-8773-d3d1117dfe28",
+      "name": "Send a text message",
+      "webhookId": "df6b3b79-d091-4429-964d-422396e10155",
+      "credentials": {
+        "telegramApi": {
+          "id": "S590TNpdJqWJN3YB",
+          "name": "Telegram account 4"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Notion Trigger": [
+      {
+        "json": {
+          "id": "30b4b410-dc45-816a-8901-d22b917764b5",
+          "Status": "Meeting Link Sent",
+          "Email": "mahmoudalaa0025@gmail.com",
+          "Name": "Moustafa Kharsa",
+          "Last Communication": {
+            "start": "2026-02-11T09:33:00.000-05:00",
+            "end": null,
+            "time_zone": null
+          },
+          "Next Communication": true,
+          "Company": "Abbott"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Notion Trigger": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update a database page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Update a database page1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a database page": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a database page1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "fe54b555-2e7e-4389-a1b8-dfad77a13e9a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51d68a43c0e7de098d2588489dee30bfbf9d1d00b625cf7115d934a62a4d9706"
+  },
+  "id": "ji2RFdLQuW35NfrrKgR3Q",
+  "tags": []
+}

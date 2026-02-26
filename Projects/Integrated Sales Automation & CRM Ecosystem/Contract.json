@@ -1,0 +1,1075 @@
+{
+  "name": "Contract",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "After Meeting form",
+        "formDescription": "Fill it After meeting",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Agent Name",
+              "placeholder": "Your Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Lead Intersted",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company Name"
+            },
+            {
+              "fieldLabel": "Lead Name"
+            },
+            {
+              "fieldLabel": "Main Services Chosen",
+              "fieldType": "checkbox",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Automation"
+                  },
+                  {
+                    "option": "Ai Agent"
+                  },
+                  {
+                    "option": "Website"
+                  },
+                  {
+                    "option": "Mobile App"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Prices"
+            },
+            {
+              "fieldLabel": "Notes"
+            },
+            {
+              "fieldLabel": "Lead Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Starting Date",
+              "fieldType": "date"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -640,
+        192
+      ],
+      "id": "1587d3e6-0bbe-42c3-a662-6b3cb2bc816c",
+      "name": "Proposal Folm",
+      "webhookId": "1964e012-9d42-44c4-8b90-fe0f76f81fdc"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "30a4b410-dc45-8016-94a9-f29c6267c9c1",
+          "mode": "list",
+          "cachedResultName": "CRM (n8n)",
+          "cachedResultUrl": "https://www.notion.so/30a4b410dc45801694a9f29c6267c9c1"
+        },
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "key": "Email|email",
+              "condition": "equals",
+              "emailValue": "={{ $json['Lead Email'] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -368,
+        192
+      ],
+      "id": "317d706e-3e62-4e57-9ad5-3e990ea656fe",
+      "name": "Get many database pages",
+      "alwaysOutputData": false,
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "if (\n  items.length === 0 ||\n  !items[0].json ||\n  Object.keys(items[0].json).length === 0\n) {\n  return items.map(item => {\n    item.json.status = \"No Data Found\";\n    return item;\n  });\n}\n\nreturn items.map(item => {\n  item.json.status = \"Data Found\";\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        32
+      ],
+      "id": "0520fd14-3dff-4c8d-b745-24825fc4b80f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "chatId": "6997710403",
+        "text": "=There is no data found for this Customer, please check the form again \n\nForm Link: https://unblemishable-willia-solitarily.ngrok-free.dev/form/d5a2fd03-5f13-4357-9f24-57b739e39969",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1152,
+        -112
+      ],
+      "id": "5e5372ac-a4eb-4cd3-85e9-df686992d4eb",
+      "name": "Send a text message",
+      "webhookId": "698cc9e8-cf16-4118-a82c-175d94fc4354",
+      "credentials": {
+        "telegramApi": {
+          "id": "S590TNpdJqWJN3YB",
+          "name": "Telegram account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "No Data Found",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "4c5dbe57-7df2-470e-8cea-e066da1d7bd6"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "No Data"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e2194def-ede8-4dc4-8baf-b837ca725861",
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "Data Found",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Data Found"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        960,
+        32
+      ],
+      "id": "131ee997-6414-48c4-8799-51a75befd49c",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Proposal Folm').item.json['Lead Intersted'] }}",
+                    "rightValue": "No",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "b90e5f8c-8f41-4245-a652-968283e3e044"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Not interested"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e0fb0ecd-0118-4a62-ba01-aac08bb62662",
+                    "leftValue": "={{ $('Proposal Folm').item.json['Lead Intersted'] }}",
+                    "rightValue": "Yes",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Interested"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1184,
+        48
+      ],
+      "id": "4603ba86-484c-46df-9ea1-5dd958b815e9",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "Drop"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1424,
+        32
+      ],
+      "id": "e247d9a1-60a1-4a7f-b0de-8e619f5241c9",
+      "name": "Update a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Convert the following meeting summary into the required structured proposal JSON.\n\nIf any information is unclear:\n\nInfer logically when possible.\n\nOtherwise use empty string \"\" or 0.\n\nDo not invent information.\n\nMeeting Summary:\n\nAgent: {{ $('Proposal Folm').item.json['Agent Name'] }}\nCompany: {{ $('Proposal Folm').item.json['Company Name'] }}\nLead: {{ $('Proposal Folm').item.json['Lead Name'] }}\nDiscussion Details:\n{{ $('Proposal Folm').item.json.Notes }}\n\nBudget Mentioned: {{ $('Proposal Folm').item.json.Prices }}\nInterested: {{ $('Proposal Folm').item.json['Lead Intersted'] }}\nEmail: {{ $('Proposal Folm').item.json['Lead Email'] }}\n\nReturn only valid JSON.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are a precise data extraction engine. Your goal is to convert meeting summaries into a structured JSON format.\n\n### RULES:\n1. PROCESS: Use your internal thought process to analyze the text, but the FINAL output must be ONLY a valid JSON object.\n2. FORMAT: No markdown blocks (no ```json), no conversational text, no explanations.\n3. SCHEMA: Use the following keys:\n   - \"Agent Name\": string\n   - \"Company Name\": string\n   - \"Lead Name\": string\n   - \"Notes\": string (max 2 sentences)\n   - \"Prices\": string\n   - \"InterestedServices\": array of strings\n   - \"Lead Email\": string\n\n4. MISSING DATA: Use \"\" for strings or [] for the array if information is not found.\n5. LANGUAGE: Ensure all values are in English as per the user's previous request.\n\nCRITICAL: Return ONLY the JSON. Starting with '{' and ending with '}'."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1392,
+        192
+      ],
+      "id": "e8778672-a2cd-4b5e-8faf-3a96e340315f",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-r1-0528:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        400
+      ],
+      "id": "00ac2c42-1c60-4f12-a9af-6109a072ccdf",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "1SevA8SSm6ROrJIR",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// جلب التاريخ من Notion مباشرة لتجنب خطأ الـ Paired Items\nconst notionDate = $('Get many database pages').first().json.property_last_communication.start;\n\n// جلب النص المستخرج من الـ AI\nconst rawData = $('Basic LLM Chain').first().json.text; \n\ntry {\n    // تنظيف وتحويل النص إلى JSON\n    const cleaned = rawData.replace(/```json/g, \"\").replace(/```/g, \"\").trim();\n    const parsed = JSON.parse(cleaned);\n\n    // دمج التاريخ مع البيانات المستخرجة\n    return {\n        ...parsed,\n        submittedAt: notionDate\n    };\n} catch (e) {\n    return { error: \"Parse error\", submittedAt: notionDate };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1728,
+        192
+      ],
+      "id": "26a66a79-6415-4aff-bf6f-995ad081e976",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "1iuDpM9HQkJEdwJpY0Xn3E6Z6bziWhgO4ScaNW_McaF4",
+          "mode": "list",
+          "cachedResultName": "Contract Template",
+          "cachedResultUrl": "https://docs.google.com/document/d/1iuDpM9HQkJEdwJpY0Xn3E6Z6bziWhgO4ScaNW_McaF4/edit?usp=drivesdk"
+        },
+        "name": "={{ $('Get many database pages').item.json.property_company }}'s Cpntract",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2480,
+        192
+      ],
+      "id": "806616a1-4d9a-488f-8d39-5b36899695a8",
+      "name": "Copy file",
+      "executeOnce": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "HZxFYaLrQPq74yQb",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "{Company Name}",
+              "replaceText": "={{ $('Get many database pages').item.json.property_company }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Notes}}",
+              "replaceText": "={{ $('Proposal Folm').item.json.Notes }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Prices}}",
+              "replaceText": "={{ $('Proposal Folm').item.json.Prices }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "Starting Date",
+              "replaceText": "={{ $('Code in JavaScript2').item.json.clean_date }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{Lead Name}",
+              "replaceText": "={{ $('Get many database pages').item.json.name }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{Agent Name}",
+              "replaceText": "={{ $('Proposal Folm').item.json['Agent Name'] }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2672,
+        192
+      ],
+      "id": "8558f44b-5308-455e-b57a-34eb600cee37",
+      "name": "Update a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "c3wUQHsLBLzXfVqo",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Copy file').item.json.id }}",
+          "mode": "id"
+        },
+        "options": {
+          "binaryPropertyName": "Contract",
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf"
+            }
+          },
+          "fileName": "Contract.pdf"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2864,
+        192
+      ],
+      "id": "9f13e716-623b-4c1b-ba1b-558072dc3d94",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "HZxFYaLrQPq74yQb",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $('Get many database pages').item.json.property_company }} - Contract",
+        "message": "=Dear,  {{ $('Get many database pages').item.json.property_name }} We are ready to move forward with your company {{ $('Get many database pages').item.json.property_company }}.\nPlease attachment our Contract.",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "Contract"
+              }
+            ]
+          },
+          "sendTo": "={{ $('Proposal Folm').first().json['Lead Email'] }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3072,
+        192
+      ],
+      "id": "35e556f9-8b41-4a41-80d4-0fef4f6598a2",
+      "name": "Create a draft",
+      "webhookId": "2bc4a914-7deb-4e05-abe5-49dc60e8978d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "rhxYLWTw6UUBjsQY",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $('Get many database pages').first().json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "Contract Ready"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        3264,
+        192
+      ],
+      "id": "02435495-788e-4ee1-930b-d33a25b700e7",
+      "name": "Update a database page1",
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "6997710403",
+        "text": "=Contract is sent as draft on you Email and ready to sent to : {{ $json.property_email }} \nCompany: {{ $json.property_company }}\nContract its self: https://docs.google.com/document/d/{{ $('Copy file').item.json.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3488,
+        192
+      ],
+      "id": "6152b057-b2e4-48d2-8fff-d3f656bc7ef7",
+      "name": "Send a text message1",
+      "webhookId": "93c6235c-3068-4cb4-af85-c56153621718",
+      "credentials": {
+        "telegramApi": {
+          "id": "S590TNpdJqWJN3YB",
+          "name": "Telegram account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "998861e6-4706-4269-a1fb-774a48fda948",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "Proposal Ready",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -160,
+        192
+      ],
+      "id": "527c0034-8582-4da0-a4b1-a47648db7082",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "6997710403",
+        "text": "=Error: This Email doesn't Exist. {{ $json['Lead Email'] }} \n\nPlease check the form https://unblemishable-willia-solitarily.ngrok-free.dev/form/1964e012-9d42-44c4-8b90-fe0f76f81fdc\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        64,
+        336
+      ],
+      "id": "7a45e328-fb2e-45ad-9f02-e2e9701e3326",
+      "name": "Send a text message2",
+      "webhookId": "ec4d4453-5817-441c-9d41-d57ac8124eb0",
+      "credentials": {
+        "telegramApi": {
+          "id": "S590TNpdJqWJN3YB",
+          "name": "Telegram account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "cd023da3-f382-4dbb-9d6b-e5d7362f2bc8",
+              "leftValue": "={{ $json.property_status }}",
+              "rightValue": "Proposal Sent",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "158d50a6-f96c-42d7-91f5-edc72e42bb06",
+              "leftValue": "={{ $json.property_status }}",
+              "rightValue": "Proposal Accepted",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        64,
+        176
+      ],
+      "id": "bed4738c-4d04-45dd-9363-b39a7b199e3a",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "Proposal Accepted"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        48
+      ],
+      "id": "4e461212-444f-4825-9deb-dda593cbea06",
+      "name": "Update a database page2",
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "6997710403",
+        "text": "=Error: This Lead is not in correct stage to Accept Any Proposals \nLead's Status: {{ $json.property_status }} \nLead's Email: {{ $json.property_email }}\nPlease recheck The \"Contract Generator\" form \nhttps://unblemishable-willia-solitarily.ngrok-free.dev/form/1964e012-9d42-44c4-8b90-fe0f76f81fdc",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        272
+      ],
+      "id": "eb87b0ed-049d-4281-9c6f-fa92a3642b11",
+      "name": "Send a text message3",
+      "webhookId": "ec4d4453-5817-441c-9d41-d57ac8124eb0",
+      "credentials": {
+        "telegramApi": {
+          "id": "S590TNpdJqWJN3YB",
+          "name": "Telegram account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d818759a-d768-478c-bbca-da8fddc845de",
+              "name": "Starting At",
+              "value": "={{ $json.submittedAt }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1920,
+        192
+      ],
+      "id": "b5f7ed72-b77c-4c90-ad7a-2315f3c60e8b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. جلب البيانات القادمة من العقدة السابقة\nconst items = $input.all();\nlet results = [];\n\nfor (const item of items) {\n  // افترضنا أن حقل التاريخ قادم باسم 'submittedAt' أو 'date'\n  // قم بتغيير اسم الحقل ليتناسب مع عقدة Notion أو الـ AI عندك\n  let rawDate = item.json.submittedAt || item.json.date || \"2026-02-18T09:33:00.000-05:00\";\n\n  // 2. تحويل النص إلى كائن تاريخ (Date Object)\n  const dateObj = new Date(rawDate);\n\n  // 3. استخراج السنة، الشهر، واليوم بتنسيق منظم (YYYY-MM-DD)\n  const year = dateObj.getFullYear();\n  const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // الشهور تبدأ من 0\n  const day = String(dateObj.getDate()).padStart(2, '0');\n\n  const formattedDate = `${year}-${month}-${day}`;\n\n  // 4. إرجاع النتيجة\n  results.push({\n    json: {\n      ...item.json, // الحفاظ على البيانات القديمة\n      clean_date: formattedDate // التاريخ الجديد المنظم\n    }\n  });\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2128,
+        192
+      ],
+      "id": "65e0bc20-7ee2-4c15-b1d6-ac49a77cc0a7",
+      "name": "Code in JavaScript2"
+    }
+  ],
+  "pinData": {
+    "Proposal Folm": [
+      {
+        "json": {
+          "Agent Name": "Ahmed Essam",
+          "Lead Intersted": "Yes",
+          "Company Name": "addopta",
+          "Lead Name": "Mostafa",
+          "Main Services Chosen": [
+            "Automation",
+            "Website"
+          ],
+          "Prices": "1500$",
+          "Notes": "He Accepted on our proposal",
+          "Lead Email": "mahmoudalaa0025@gmail.com",
+          "Starting Date": "2026-02-23",
+          "submittedAt": "2026-02-22T15:45:27.696-05:00",
+          "formMode": "test"
+        }
+      }
+    ],
+    "Basic LLM Chain": [
+      {
+        "json": {
+          "text": "{\n  \"Agent Name\": \"Ahmed Essam\",\n  \"Company Name\": \"addopta\",\n  \"Lead Name\": \"Mostafa\",\n  \"Notes\": \"He accepted our proposal.\",\n  \"Prices\": \"1500$\",\n  \"InterestedServices\": [],\n  \"Lead Email\": \"mahmoudalaa0025@gmail.com\"\n}"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Copy file": [
+      {
+        "json": {
+          "kind": "drive#file",
+          "id": "15S5W9anEfrjbWlHM5sjQVlzJHjar0SnQ3aZqJB4-TD4",
+          "name": "Alrajhi Bank's Cpntract",
+          "mimeType": "application/vnd.google-apps.document"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Update a document": [
+      {
+        "json": {
+          "documentId": "15S5W9anEfrjbWlHM5sjQVlzJHjar0SnQ3aZqJB4-TD4"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Proposal Folm": {
+      "main": [
+        [
+          {
+            "node": "Get many database pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many database pages": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Update a database page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copy file": {
+      "main": [
+        [
+          {
+            "node": "Update a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Create a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a draft": {
+      "main": [
+        [
+          {
+            "node": "Update a database page1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a database page1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Update a database page2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a database page2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Copy file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "52fdc8ff-c33d-497e-b1d5-01274f34de07",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51d68a43c0e7de098d2588489dee30bfbf9d1d00b625cf7115d934a62a4d9706"
+  },
+  "id": "Z33qj7UutNzoCIFzM0htx",
+  "tags": []
+}

@@ -1,0 +1,325 @@
+{
+  "name": "Proposal Sent",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "dc0d6766-eef9-478b-b592-cca3e3e80d73",
+      "name": "Telegram Trigger",
+      "webhookId": "ed57690f-dda6-4caa-a890-e949ebb554dd",
+      "credentials": {
+        "telegramApi": {
+          "id": "S590TNpdJqWJN3YB",
+          "name": "Telegram account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=your task to generate Gmail from the user message.\n\n#output form:\n{\n  gmail: string\n}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        208,
+        0
+      ],
+      "id": "66514138-fcb4-4ae2-8788-65dc681b315c",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "arcee-ai/trinity-large-preview:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        144,
+        208
+      ],
+      "id": "80dd66f8-6f78-4e95-afc7-6207af54d0a5",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "1SevA8SSm6ROrJIR",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. جلب النص القادم من العقدة السابقة\n// سنفترض أن الحقل الذي يحتوي على النص اسمه 'text' أو 'content'\nconst items = $input.all();\nlet results = [];\n\n// Regex لاستخراج الإيميلات بدقة\nconst emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g;\n\nfor (const item of items) {\n  // جلب النص من الحقل المتاح (عدل 'text' ليتناسب مع اسم الحقل عندك)\n  const content = item.json.text || item.json.content || \"\";\n  \n  // استخراج كافة الإيميلات\n  const foundEmails = content.match(emailRegex);\n\n  if (foundEmails) {\n    // إذا وجدت إيميلات، سنقوم بإرجاع كل إيميل كعنصر مستقل (Item) لسهولة المعالجة\n    foundEmails.forEach(email => {\n      results.push({\n        json: {\n          extracted_email: email.toLowerCase(),\n          original_id: item.json.id // للحفاظ على مرجع للعنصر الأصلي\n        }\n      });\n    });\n  }\n}\n\n// إذا لم يتم العثور على أي إيميل، يمكنك إرجاع مصفوفة فارغة أو رسالة تنبيه\nreturn results.length > 0 ? results : [{ json: { message: \"No emails found\" } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "d5aa188a-079d-4b49-a828-c902723ce7c9",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "30a4b410-dc45-8016-94a9-f29c6267c9c1",
+          "mode": "list",
+          "cachedResultName": "CRM (n8n)",
+          "cachedResultUrl": "https://www.notion.so/30a4b410dc45801694a9f29c6267c9c1"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "100787be-57e4-4f03-a341-aab727ac934d",
+      "name": "Get many database pages",
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9ef8b45e-cbd0-438a-8eb3-32aa943d384f",
+              "leftValue": "={{ $json.property_status }}",
+              "rightValue": "Proposal Ready",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        976,
+        0
+      ],
+      "id": "b7b5b988-f4d9-4c97-8b78-290702c8d065",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status|select",
+              "selectValue": "Proposal Sent"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        1232,
+        -16
+      ],
+      "id": "c71ef133-4437-43d4-ad9b-a925c0dc3add",
+      "name": "Update a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "2riW6i9wMVvCxYyl",
+          "name": "CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=This Lead's Proposal is not prepared before\nLead's Name: {{ $json.property_name }}\nLead's Email: {{ $json.property_email }}\nCompany Name: {{ $json.name }}\nLead's Status: {{ $json.property_status }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1152,
+        192
+      ],
+      "id": "8b855909-8868-4b91-82de-fbf292796a43",
+      "name": "Send a text message",
+      "webhookId": "7813bbb0-41aa-47a4-9d3d-13bc6a34e4a5",
+      "credentials": {
+        "telegramApi": {
+          "id": "S590TNpdJqWJN3YB",
+          "name": "Telegram account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=We Updated lead's Status of {{ $json.property_email }}, \nOnce he accept the proposal, fill this \"contract creator\" form \nLink: https://unblemishable-willia-solitarily.ngrok-free.dev/form/1964e012-9d42-44c4-8b90-fe0f76f81fdc\n\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1536,
+        -16
+      ],
+      "id": "2dc3fd44-1938-4130-8c59-da6414a1df25",
+      "name": "Send a text message1",
+      "webhookId": "7813bbb0-41aa-47a4-9d3d-13bc6a34e4a5",
+      "credentials": {
+        "telegramApi": {
+          "id": "S590TNpdJqWJN3YB",
+          "name": "Telegram account 4"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Get many database pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many database pages": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Update a database page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a database page": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "32d225d6-f156-451d-b472-d96b18cecc57",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51d68a43c0e7de098d2588489dee30bfbf9d1d00b625cf7115d934a62a4d9706"
+  },
+  "id": "Zt3NdpBK393G0eo3PUuLU",
+  "tags": []
+}
