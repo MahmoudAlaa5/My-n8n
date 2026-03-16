@@ -1,0 +1,684 @@
+{
+  "name": "Academy Project (Add New Student Process)",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Admin Portal",
+        "formDescription": "Add New Student Details",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Student Name",
+              "placeholder": "Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Student WhatsApp",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Student Schedule ",
+              "placeholder": "Please Enter The schedule as text",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Session's Duration (Minutes)",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Teacher Name",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Mohammed"
+                  },
+                  {
+                    "option": "Omar Saad"
+                  },
+                  {
+                    "option": "Menshawi"
+                  },
+                  {
+                    "option": "Mostafa Isamil"
+                  },
+                  {
+                    "option": "Hadeer"
+                  },
+                  {
+                    "option": "Amal"
+                  },
+                  {
+                    "option": "Shaimaa"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Student's Gender",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Male"
+                  },
+                  {
+                    "option": "Female"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Teacher WhatsApp",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Payment Schedule ",
+              "fieldType": "date",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Teacher Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Student Hours per Month",
+              "fieldType": "number",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c47d3611-3417-43c6-9358-8afa9b8c94c5",
+      "name": "On form submission",
+      "webhookId": "ef5d8e88-0868-4301-b6df-4fa345898538"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d955ac0f-cdd9-49ea-9395-a2c2d280244c",
+              "name": "Student WhatsApp",
+              "value": "={{ $json['Student WhatsApp'] }}",
+              "type": "number"
+            },
+            {
+              "id": "24d3fbcd-6def-43cf-9fc8-416f639ab11c",
+              "name": "submittedAt",
+              "value": "={{ $json.submittedAt }}",
+              "type": "string"
+            },
+            {
+              "id": "0452d242-7a25-4116-9a19-700b6a13deba",
+              "name": "Teacher WhatsApp",
+              "value": "={{ $json['Teacher WhatsApp'] }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "0264ee81-c094-48db-b8a1-24bbdb4b5339",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map(item => {\n  const rawData = item.json;\n\n  // وظيفة تنظيف رقم الواتساب\n  const formatToInternational = (phone) => {\n    if (!phone) return null;\n    let cleaned = phone.toString().replace(/\\D/g, '');\n    if (cleaned.startsWith('0')) {\n      cleaned = '20' + cleaned.substring(1);\n    }\n    if (cleaned.length === 10 && (cleaned.startsWith('1') || cleaned.startsWith('5'))) {\n        cleaned = '20' + cleaned;\n    }\n    return cleaned;\n  };\n\n  // تنظيف رقم الطالب أولاً\n  const cleanedPhone = formatToInternational(rawData[\"Student WhatsApp\"]);\n\n  // استخراج آخر 4 أرقام من الرقم المنظف (إذا وجد الرقم)\n  const studentIdFromPhone = cleanedPhone ? cleanedPhone.slice(-4) : \"0000\";\n\n  return {\n    json: {\n      student_id: studentIdFromPhone, // آخر 4 أرقام من الهاتف\n      student_whatsapp_clean: cleanedPhone,\n      teacher_whatsapp_clean: formatToInternational(rawData[\"Teacher WhatsApp\"]),\n      registration_date: rawData[\"submittedAt\"] ? new Date(rawData[\"submittedAt\"]).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "504aa3c8-a062-49ba-89c8-189e997f973e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY",
+          "mode": "list",
+          "cachedResultName": "Academy Sheet.",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 102009818,
+          "mode": "list",
+          "cachedResultName": "Owner (Students)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit#gid=102009818"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Student Name": "={{ $json.StudentName }}",
+            "Whats App": "={{ $('On form submission').first().json['Student WhatsApp'] }}",
+            "Hours Per Month": "={{ $('On form submission').first().json['Student Hours per Month'] }}",
+            "Payment History": "={{ $('On form submission').first().json['Payment Schedule '] }}",
+            "Joined at": "={{ $('Code in JavaScript').first().json.registration_date }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Student Name",
+              "displayName": "Student Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Whats App",
+              "displayName": "Whats App",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Hours Per Month",
+              "displayName": "Hours Per Month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total Hours",
+              "displayName": "Total Hours",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Payment History",
+              "displayName": "Payment History",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Joined at",
+              "displayName": "Joined at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2208,
+        32
+      ],
+      "id": "4bcff459-227c-4d26-b0fe-a5dadf4f9388",
+      "name": "Append row in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "a5JeDXpT8kSl4Mkq",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "dd9e8ecf-d337-4770-80bb-c39615f6d35d",
+              "leftValue": "={{ $json.isDuplicate }}",
+              "rightValue": "=true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1504,
+        32
+      ],
+      "id": "b8c6e4d3-d531-4c86-a539-ca08c90c07cd",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY",
+          "mode": "list",
+          "cachedResultName": "Academy Sheet.",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Students (Males)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        -64
+      ],
+      "id": "4bd997ab-fc5f-4210-bf2d-2993b7e5c81f",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "a5JeDXpT8kSl4Mkq",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9f122cf4-38da-4830-bdfe-b36e4f85c181",
+              "leftValue": "={{ $('On form submission').item.json['Student\\'s Gender'] }}",
+              "rightValue": "Male",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "c9e0fcbe-f4b7-4c07-95e2-fe26457f0647",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY",
+          "mode": "list",
+          "cachedResultName": "Academy Sheet.",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1493632542,
+          "mode": "list",
+          "cachedResultName": "Students (Females)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit#gid=1493632542"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        96
+      ],
+      "id": "1cbf9b58-7830-4a85-ae06-ceb6c769f353",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "a5JeDXpT8kSl4Mkq",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "6997710403",
+        "text": "=Error: \nThe Student ( {{ $json.StudentName }} ) with ID ({{ $json.newId }}) is already found. please check the form again.\n\nAi Assistant.\nThank you.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1776,
+        -144
+      ],
+      "id": "22623b65-4b5b-47cc-8a63-a7fd097c7a31",
+      "name": "Send a text message",
+      "webhookId": "5a218dc9-112a-427b-b8c6-8c1ad4c1ecc0",
+      "credentials": {
+        "telegramApi": {
+          "id": "reCxfjmoZtCEunpZ",
+          "name": "Academy Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const newId = $('Code in JavaScript').first().json.student_id;\nconst existingRows = $input.all(); \nconst StudentName = $('On form submission').first().json['Student Name'];// بفرض أن هذا المدخل هو بيانات الشيت\n\nconst TeacherName = $('On form submission').first().json['Teacher Name'];\nconst TeacherScheduel = $('On form submission').first().json['Student Schedule '];\n\n// البحث عن أي تطابق\nconst isFound = existingRows.some(row => row.json['Student ID'] == newId);\n\nreturn {\n  isDuplicate: isFound,\n  newId: newId,\n  StudentName: StudentName,\n  TeacherName: TeacherName,\n  TeacherSchedual: TeacherScheduel\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        32
+      ],
+      "id": "fafc0487-3146-494b-9ca5-56ef7d62c584",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// جلب المجموعتين\nconst students = $input.all(0);\nconst teacherRows = $input.all(1);\n\n// استخراج المواعيد في قائمة واحدة ونظيفة\nconst allSchedules = teacherRows.map(row => row.json[\"Student's Schedual\"]).filter(s => s);\n\n// تحويل الطلاب لتنسيق n8n\nconst studentResults = students.map(s => ({ json: s.json }));\n\n// إضافة عنصر واحد فقط يحتوي على كل المواعيد في نهاية القائمة\nstudentResults.push({\n  json: {\n    is_schedule_list: true,\n    all_teacher_schedules: allSchedules\n  }\n});\n\nreturn studentResults;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1072,
+        32
+      ],
+      "id": "4d227ccc-d99a-40a1-ac4e-d22a84d476db",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "837de0de-6382-4b38-a827-79a0154417cd",
+              "leftValue": "={{ $json.isScheduleAvailable }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1936,
+        48
+      ],
+      "id": "de18caaa-f676-4360-93bd-c2800402ed74",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. جلب قائمة المواعيد المحجوزة من العقدة الأولى (المدخل 0)\nconst inputFromNode1 = $input.all(0);\nconst scheduleListElement = inputFromNode1.find(item => item.json.is_schedule_list === true);\nconst bookedSchedules = scheduleListElement ? scheduleListElement.json.all_teacher_schedules : [];\n\n// 2. جلب موعد الطالب الجديد من العقدة الثانية (المدخل 1)\nconst studentChoice = $input.all(1)[0].json;\nconst selectedSchedule = String(studentChoice.TeacherSchedual || \"\").trim();\n\n// 3. اللوب للمقارنة:\n// سنفترض أولاً أن الموعد متاح (true)\nlet isAvailable = true; \n\nfor (const booked of bookedSchedules) {\n  // إذا وجدنا تطابقاً واحداً فقط، فهذا يعني أن الموعد \"غير متاح\"\n  if (String(booked).trim() === selectedSchedule) {\n    isAvailable = false; // وجدنا الموعد محجوزاً\n    break; // نخرج من اللوب فوراً، لا داعي لإكمال الفحص\n  }\n}\n\n// 4. إرجاع النتيجة\nreturn {\n  json: {\n    ...studentChoice,\n    isScheduleAvailable: isAvailable // ترجع true إذا كان الموعد متاحاً، و false إذا كان محجوزاً\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1712,
+        48
+      ],
+      "id": "349ddda6-be7b-4ec4-82f7-2d4ea6556f81",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "chatId": "6997710403",
+        "text": "=Error: This Schedual ( {{ $('On form submission').item.json['Student Schedule '] }} ) for The teacher ({ { $('On form submission').item.json['Teacher Name'] }} ) is Unavailable. Please Select onther Schedual.\n\nThank You.\nAi Assistant.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2192,
+        208
+      ],
+      "id": "e7eeffd5-401c-471c-b84d-3e2475c495a9",
+      "name": "Send a text message1",
+      "webhookId": "0f921623-cc9c-47e6-9514-5ec121b7c6ea",
+      "credentials": {
+        "telegramApi": {
+          "id": "S590TNpdJqWJN3YB",
+          "name": "Academy Reports"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet2": {
+      "main": [
+        []
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "a3f44a81-34ea-4355-b2f7-1f9d0935296e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51d68a43c0e7de098d2588489dee30bfbf9d1d00b625cf7115d934a62a4d9706"
+  },
+  "id": "bRLlLXwB9u3ygGS-keJMO",
+  "tags": []
+}

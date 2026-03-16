@@ -1,0 +1,844 @@
+{
+  "name": "Academy Project (Add Session Details)",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "02eaf841-82e7-4cd2-910f-bd04a9f054b0",
+      "name": "Telegram Trigger",
+      "webhookId": "a060d60c-8d44-4fee-bfc7-ec439db7828c",
+      "credentials": {
+        "telegramApi": {
+          "id": "S590TNpdJqWJN3YB",
+          "name": "Academy Reports"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=\nYou are a highly efficient Data Parsing Agent. Your mission is to extract student information from Telegram messages and route it to the correct Google Sheet using the appropriate tool based on gender classification.\n\nCore Logic:\n\nExtract Information: Parse the following fields from the input text:\n\nstudent_id\n\nstudent_name\n\nstudent_schedule\n\nsession_duration\n\nteacher_name\n\nteacher_whatsapp\n\nteacher_email\n\nGender Logic: Analyze the student_name to identify gender.\n\nIf Male: Invoke the Append_in_Males tool.\n\nIf Female: Invoke the Append_in_Females tool.\n\nData Cleaning: Format the teacher_whatsapp to be a clean numeric string with the country code (e.g., 201xxxxxxxxx) to ensure the WhatsApp Cloud API can process it later.\n\nGuidelines:\n\nOperational Precision: Do not include any conversational filler. Only execute the necessary tool.\n\nValidation: If a piece of information is missing, use \"N/A\" as a placeholder but never skip a required field for the tool.\n\nConflict Resolution: If the gender is unclear from the name, use your best linguistic judgment based on Arabic/English naming conventions.\n\nTools Inventory:\n\nAppend_in_Males: Adds a row to the male students' database.\n\nAppend_in_Females: Adds a row to the female students' database.\n\nOutput: Gender of Student in Json \nEX: \"Student Gender\": \"Male\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "511b11eb-5ee5-4583-b882-c287f5eaaa2e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        288,
+        240
+      ],
+      "id": "f35b8d12-56fc-44da-a893-4599a1e4548b",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "model": "arcee-ai/trinity-large-preview:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        144,
+        240
+      ],
+      "id": "7e92f566-d750-4e74-bd8b-a96499e68031",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "1SevA8SSm6ROrJIR",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY",
+          "mode": "list",
+          "cachedResultName": "Academy Sheet.",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Students (Males)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Student ID": "={{ $fromAI(\"student_id\") }}",
+            "Student Name": "={{ $fromAI(\"student_name\") }}",
+            "Teacher Name": "={{ $fromAI(\"teacher_name\") }}",
+            "Student's Schedual": "={{ $fromAI(\"student_schedual\") }}",
+            "Session's Duration": "={{ $fromAI(\"session_duration\") }}",
+            "Teacher's Whatsapp": "={{ $fromAI(\"teacher_whatsapp\") }}",
+            "Teacher's Email": "={{ $fromAI(\"teacher_email\") }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Student ID",
+              "displayName": "Student ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Student Name",
+              "displayName": "Student Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Student's Schedual",
+              "displayName": "Student's Schedual",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Session's Duration",
+              "displayName": "Session's Duration",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Teacher Name",
+              "displayName": "Teacher Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Teacher's Whatsapp",
+              "displayName": "Teacher's Whatsapp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Teacher's Email",
+              "displayName": "Teacher's Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        256
+      ],
+      "id": "fece745f-a61e-479e-886c-a13f723ab6b4",
+      "name": "Append_in_Males",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "a5JeDXpT8kSl4Mkq",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY",
+          "mode": "list",
+          "cachedResultName": "Academy Sheet.",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1493632542,
+          "mode": "list",
+          "cachedResultName": "Students (Females)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit#gid=1493632542"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Student ID": "={{ $fromAI(\"student_id\") }}",
+            "Teacher Name": "={{ $fromAI(\"teacher_name\") }}",
+            "Student Name": "={{ $fromAI(\"student_name\") }}",
+            "Student's Schedual": "={{ $fromAI(\"student_schedule\") }}",
+            "Session's Duration": "={{ $fromAI(\"session_duration\") }}",
+            "Teacher's Whatsapp": "={{ $fromAI(\"teacher_whatsapp\") }}",
+            "Teacher's Email": "={{ $fromAI(\"teacher_email\") }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Student ID",
+              "displayName": "Student ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Student Name",
+              "displayName": "Student Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Student's Schedual",
+              "displayName": "Student's Schedual",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Session's Duration",
+              "displayName": "Session's Duration",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Teacher Name",
+              "displayName": "Teacher Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Teacher's Whatsapp",
+              "displayName": "Teacher's Whatsapp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Teacher's Email",
+              "displayName": "Teacher's Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        576,
+        240
+      ],
+      "id": "f3490f3a-0411-4b96-b746-db769c58f0af",
+      "name": "Append_in_ Females",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "a5JeDXpT8kSl4Mkq",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "18f980a5-df21-4937-8300-9f7057b9b2bf",
+              "leftValue": "={{ $json.output.gender }}",
+              "rightValue": "Female",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        0
+      ],
+      "id": "f4627100-30c9-4704-90bd-cf74c54e6b6e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"student_id\": \"string\",\n  \"student_name\": \"string\",\n  \"gender\": \"string (male or female)\",\n  \"schedule\": \"string\",\n  \"duration\": \"number\",\n  \"teacher_name\": \"string\",\n  \"teacher_whatsapp\": \"string\",\n  \"teacher_email\": \"string\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        528,
+        352
+      ],
+      "id": "5cca0f72-a2fe-45b6-a388-e6a3bbd5fb4e",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY",
+          "mode": "list",
+          "cachedResultName": "Academy Sheet.",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1493632542,
+          "mode": "list",
+          "cachedResultName": "Students (Females)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit#gid=1493632542"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Student ID",
+              "lookupValue": "={{ $json.output.student_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        800,
+        -16
+      ],
+      "id": "c97fcbc6-c264-4428-b805-852536d8a7d8",
+      "name": "Females",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "a5JeDXpT8kSl4Mkq",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. جلب الساعات الحالية من الشيت\nlet currentHoursInSheet = parseFloat($input.first().json['Total Hours']) || 0;\n\n// 2. جلب كل الـ items (loop)\nlet items = $input.all();\n\nlet totalNewHours = 0;\n\n// 3. عمل loop على كل session duration\nfor (let item of items) {\n\n  let newSessionRaw = $('Females').first().json['Session\\'s Duration'] || \"0\";\n\n  // استخراج الدقائق فقط\n  let newMinutes = parseInt(newSessionRaw.replace(/\\D/g, '')) || 0;\n\n  // تحويل إلى ساعات\n  let newHours = newMinutes / 60;\n\n  // جمع الساعات\n  totalNewHours += newHours;\n}\n\n// 4. جمع الساعات القديمة + الجديدة\nlet updatedTotal = currentHoursInSheet + totalNewHours;\n\nreturn {\n  finalHours: Number(updatedTotal.toFixed(2)),\n  addedNow: Number(totalNewHours.toFixed(2))\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        -16
+      ],
+      "id": "cf004b8c-f2fc-4b6a-ada5-e662225953c8",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY",
+          "mode": "list",
+          "cachedResultName": "Academy Sheet.",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 102009818,
+          "mode": "list",
+          "cachedResultName": "Owner (Students)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit#gid=102009818"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Total Hours": "={{ $json.finalHours }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Student ID",
+              "displayName": "Student ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Student Name",
+              "displayName": "Student Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Whats App",
+              "displayName": "Whats App",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Hours Per Month",
+              "displayName": "Hours Per Month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Total Hours",
+              "displayName": "Total Hours",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Payment History",
+              "displayName": "Payment History",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Joined at",
+              "displayName": "Joined at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1360,
+        -16
+      ],
+      "id": "f81d62cd-f699-483c-b97b-0d7556c49796",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "a5JeDXpT8kSl4Mkq",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY",
+          "mode": "list",
+          "cachedResultName": "Academy Sheet.",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Students (Males)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Student ID",
+              "lookupValue": "={{ $('AI Agent').item.json.output.student_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        800,
+        192
+      ],
+      "id": "1b5871b1-11ba-4383-a23b-dfe52dd7cf42",
+      "name": "Males",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "a5JeDXpT8kSl4Mkq",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. جلب الساعات الحالية من الشيت\nlet currentHoursInSheet = parseFloat($input.first().json['Total Hours']) || 0;\n\n// 2. جلب كل الـ items (loop)\nlet items = $input.all();\n\nlet totalNewHours = 0;\n\n// 3. عمل loop على كل session duration\nfor (let item of items) {\n\n  let newSessionRaw = $('Females').first().json['Session\\'s Duration'] || \"0\";\n\n  // استخراج الدقائق فقط\n  let newMinutes = parseInt(newSessionRaw.replace(/\\D/g, '')) || 0;\n\n  // تحويل إلى ساعات\n  let newHours = newMinutes / 60;\n\n  // جمع الساعات\n  totalNewHours += newHours;\n}\n\n// 4. جمع الساعات القديمة + الجديدة\nlet updatedTotal = currentHoursInSheet + totalNewHours;\n\nreturn {\n  finalHours: Number(updatedTotal.toFixed(2)),\n  addedNow: Number(totalNewHours.toFixed(2))\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        192
+      ],
+      "id": "ddf96dfa-aafb-4996-b493-b7b68ae93fa5",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY",
+          "mode": "list",
+          "cachedResultName": "Academy Sheet.",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 102009818,
+          "mode": "list",
+          "cachedResultName": "Owner (Students)",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1--egnqOL7Hf1EuJ4BpnBBGRUK5WEwyUzJgPTXSxQ9aY/edit#gid=102009818"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Total Hours": "={{ $json.finalHours }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Student ID",
+              "displayName": "Student ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Student Name",
+              "displayName": "Student Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Whats App",
+              "displayName": "Whats App",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Hours Per Month",
+              "displayName": "Hours Per Month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Total Hours",
+              "displayName": "Total Hours",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Payment History",
+              "displayName": "Payment History",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Joined at",
+              "displayName": "Joined at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1216,
+        192
+      ],
+      "id": "b416243d-3e0c-4b4b-a578-b7f67c32df0f",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "a5JeDXpT8kSl4Mkq",
+          "name": "Google Sheets account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append_in_Males": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append_in_ Females": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Females",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Males",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Females": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Males": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "3a14aedd-c54b-46de-b9e1-8760ffd9e083",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51d68a43c0e7de098d2588489dee30bfbf9d1d00b625cf7115d934a62a4d9706"
+  },
+  "id": "gbxMMVguo6YunX3qyynSk",
+  "tags": []
+}
