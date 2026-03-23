@@ -1,0 +1,376 @@
+{
+  "name": "AI Product Description Shopify",
+  "nodes": [
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "product",
+        "operation": "getAll",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "b9228f7d-57ec-4617-b5e2-410faba7008f",
+      "name": "Get many products",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "n1m72pugR13dpLzb",
+          "name": "Shopify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fc80922c-ffa3-42ff-81ed-8393e609f046",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "number"
+            },
+            {
+              "id": "3891488e-9af8-4a4f-80a1-b1dc66894675",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "baf96a89-5406-4161-a2e3-809a84950e62",
+              "name": "body_html",
+              "value": "={{ $json.body_html }}",
+              "type": "string"
+            },
+            {
+              "id": "6fab5f65-2813-48b0-a25d-30d207bf8e0a",
+              "name": "product_type",
+              "value": "={{ $json.product_type }}",
+              "type": "string"
+            },
+            {
+              "id": "974cfc7f-a13c-481a-a52f-9929391df607",
+              "name": "created_at",
+              "value": "={{ $json.created_at }}",
+              "type": "string"
+            },
+            {
+              "id": "57fd77b8-641c-479f-bf85-64a0e8d458db",
+              "name": "tags",
+              "value": "={{ $json.tags }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "ab1dc18b-756c-4971-a2bc-44bc4b2ed31b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7b5cca79-2483-496e-90ed-8103297767e8",
+              "leftValue": "={{ $json.body_html }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "1c96e1cf-81c7-4f0e-bcf6-4e474b9d61ea",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        864,
+        -16
+      ],
+      "id": "a76845ba-96e9-4aae-8ee8-aefbcf94b51c",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Product ID: {{ $json.id }}\nProduct Title: {{ $json.title }}\nProduct Type: {{ $json.product_type }}\nTags: {{ $json.tags }}",
+        "options": {
+          "systemMessage": "=You are an AI agent that MUST call a tool.\n\nYou will receive:\n- id\n- title\n- product_type\n- tags\n- body_html\n\nYour task:\n- If body_html is empty → generate a product description in HTML\n- If body_html is NOT empty → DO NOTHING\n\nHTML Rules:\n- Use only <p>, <ul>, <li>, <strong>\n- Include:\n  - short intro paragraph\n  - bullet points\n  - closing sentence\n\nCRITICAL:\nYou MUST call the tool \"Update_Product_Description\"\n\nReturn ONLY valid JSON in this exact format:\n{\n  \"id\": <product_id>,\n  \"body_html\": \"<HTML content>\"\n}\n\nDO NOT return:\n- text\n- explanations\n- markdown\n- empty array []\n\nIf you cannot generate the description, still return a valid JSON with a simple HTML.\n\nNEVER return []."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1136,
+        0
+      ],
+      "id": "52bc718f-ee67-4aa1-ac37-902cb2cbee9d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "arcee-ai/trinity-large-preview:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        208
+      ],
+      "id": "3b87ada2-eefa-44e4-b0c3-1e8cc9506546",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "1SevA8SSm6ROrJIR",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "8489749769869"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1168,
+        224
+      ],
+      "id": "c0196fe4-e4f3-4040-9380-20a76f58c391",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "product",
+        "operation": "update",
+        "productId": "={{ $json.id }}",
+        "updateFields": {
+          "body_html": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Body_HTML', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.shopifyTool",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        224
+      ],
+      "id": "11fcc959-92c7-4d76-9d13-a153235e7278",
+      "name": "Update_Product_Description",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "n1m72pugR13dpLzb",
+          "name": "Shopify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "topic": "products/create"
+      },
+      "type": "n8n-nodes-base.shopifyTrigger",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        0
+      ],
+      "id": "d69cddc6-c1a3-4266-bdb0-f00c25d82c94",
+      "name": "Shopify Trigger",
+      "webhookId": "6721dce2-7791-4415-b976-c604830d6e0b",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "n1m72pugR13dpLzb",
+          "name": "Shopify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "546846846",
+        "text": "=Your Products's Description has been added Successfully. Now you can check them",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        -144
+      ],
+      "id": "3e3c8cbe-762e-4977-9177-3f9186a207ee",
+      "name": "Send a text message",
+      "webhookId": "f3a2a95f-68ec-4fca-b746-9180fa7a82fc",
+      "credentials": {
+        "telegramApi": {
+          "id": "S590TNpdJqWJN3YB",
+          "name": "Academy Reports"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get many products": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update_Product_Description": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopify Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "a0133239-fb7b-4562-ba7b-19218a6da931",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "51d68a43c0e7de098d2588489dee30bfbf9d1d00b625cf7115d934a62a4d9706"
+  },
+  "id": "g7DiN1NYiFr7DPq8p0UEJ",
+  "tags": [
+    {
+      "updatedAt": "2026-03-22T21:57:58.669Z",
+      "createdAt": "2026-03-22T21:57:58.669Z",
+      "id": "9zQSkBeZrx8rBgi6",
+      "name": "Shopify"
+    }
+  ]
+}
